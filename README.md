@@ -23,9 +23,6 @@ symptom-disease-predictor/
 │
 ├── README.md ← Project documentation
 
-yaml
-Copy code
-
 ---
 
 ## 📌 Features
@@ -58,24 +55,29 @@ Copy code
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
-🔹 Frontend (Streamlit)
-bash
+```
+
+### 🔹 Frontend (Streamlit)
+```bash
 Copy code
 cd frontend
 pip install -r requirements.txt
 streamlit run app.py
-🌟 Future Improvements
-Add more medical datasets for better accuracy
+```
+---
 
-Deploy app using Docker and Cloud (Heroku / AWS / Azure)
+## 🌟 Future Improvements
+- Add more medical datasets for better accuracy
+- Deploy app using Docker and Cloud (Heroku / AWS / Azure)
+- Improve model with Deep Learning approaches
+- Add authentication for secure access
 
-Improve model with Deep Learning approaches
+---
 
-Add authentication for secure access
-
-⚙️ Installation & Setup
+## ⚙️ Installation & Setup
 1. Clone the Repository
-bash
+```bash
 Copy code
 git clone https://github.com/<your-username>/symptom-disease-predictor.git
 cd symptom-disease-predictor
+```
