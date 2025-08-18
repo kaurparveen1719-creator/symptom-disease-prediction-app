@@ -23,37 +23,38 @@ symptom-disease-predictor/
 │
 ├── README.md ← Project documentation
 
+yaml
+Copy code
+
 ---
 
-📌 Features
-Predicts disease based on multiple symptoms
+## 📌 Features
+- Predicts disease based on multiple symptoms  
+- FastAPI backend for ML model serving  
+- Streamlit frontend for easy user interaction  
+- Modular project structure for clarity  
 
-FastAPI backend for ML model serving
+---
 
-Streamlit frontend for easy user interaction
+## 📊 Example Usage
+1. Enter symptoms in the Streamlit interface.  
+2. The system sends the request to the FastAPI backend.  
+3. Backend predicts possible disease and returns result.  
 
-Modular project structure for clarity
+---
 
-📊 Example Usage
-Enter symptoms in the Streamlit interface.
+## 🚀 Tech Stack
+- **Python**  
+- **Scikit-learn** (for ML model)  
+- **FastAPI** (backend)  
+- **Streamlit** (frontend)  
 
-The system sends the request to the FastAPI backend.
+---
 
-Backend predicts possible disease and returns result.
+## ⚙️ Setup Instructions
 
-🚀 Tech Stack
-Python
-
-Scikit-learn (for ML model)
-
-FastAPI (backend)
-
-Streamlit (frontend)
-
-⚙️ Setup Instructions
-🔹 Backend (FastAPI)
-bash
-Copy code
+### 🔹 Backend (FastAPI)
+```bash
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
@@ -63,8 +64,6 @@ Copy code
 cd frontend
 pip install -r requirements.txt
 streamlit run app.py
-
-
 🌟 Future Improvements
 Add more medical datasets for better accuracy
 
@@ -73,8 +72,6 @@ Deploy app using Docker and Cloud (Heroku / AWS / Azure)
 Improve model with Deep Learning approaches
 
 Add authentication for secure access
-
-## ⚙️ Installation & Setup  
 
 ⚙️ Installation & Setup
 1. Clone the Repository
