@@ -25,57 +25,60 @@ symptom-disease-predictor/
 
 ---
 
-## 📌 Features
-- Predicts disease based on multiple symptoms  
-- FastAPI backend for ML model serving  
-- Streamlit frontend for easy user interaction  
-- Modular project structure for clarity  
+📌 Features
+Predicts disease based on multiple symptoms
 
----
+FastAPI backend for ML model serving
 
-## 📊 Example Usage
-1. Enter symptoms in the Streamlit interface.  
-2. The system sends the request to the FastAPI backend.  
-3. Backend predicts possible disease and returns result.  
+Streamlit frontend for easy user interaction
 
----
+Modular project structure for clarity
 
-## 🚀 Tech Stack
-- **Python**  
-- **Scikit-learn** (for ML model)  
-- **FastAPI** (backend)  
-- **Streamlit** (frontend)  
+📊 Example Usage
+Enter symptoms in the Streamlit interface.
 
----
+The system sends the request to the FastAPI backend.
 
-## ⚙️ Setup Instructions
+Backend predicts possible disease and returns result.
 
-### 🔹 Backend (FastAPI)
-```bash
+🚀 Tech Stack
+Python
+
+Scikit-learn (for ML model)
+
+FastAPI (backend)
+
+Streamlit (frontend)
+
+⚙️ Setup Instructions
+🔹 Backend (FastAPI)
+bash
+Copy code
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
-
-### 🔹 Frontend (Streamlit)
-```bash
+🔹 Frontend (Streamlit)
+bash
+Copy code
 cd frontend
 pip install -r requirements.txt
 streamlit run app.py
 
----
 
-## 🌟 Future Improvements
+🌟 Future Improvements
 Add more medical datasets for better accuracy
-Deploy app using Docker and Cloud (Heroku / AWS / Azure)
-Improve model with Deep Learning approaches
-Add authentication for secure access
 
----
+Deploy app using Docker and Cloud (Heroku / AWS / Azure)
+
+Improve model with Deep Learning approaches
+
+Add authentication for secure access
 
 ## ⚙️ Installation & Setup  
 
-### 1. Clone the Repository  
-
-```bash
+⚙️ Installation & Setup
+1. Clone the Repository
+bash
+Copy code
 git clone https://github.com/<your-username>/symptom-disease-predictor.git
 cd symptom-disease-predictor
