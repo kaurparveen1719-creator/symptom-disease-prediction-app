@@ -56,7 +56,7 @@ cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
 
-**### 🔹 Frontend (Streamlit)**
+### 🔹 Frontend (Streamlit)
 ```bash
 cd frontend
 pip install -r requirements.txt
@@ -64,7 +64,7 @@ streamlit run app.py
 
 ---
 
-**## 🌟 Future Improvements**
+## 🌟 Future Improvements
 Add more medical datasets for better accuracy
 Deploy app using Docker and Cloud (Heroku / AWS / Azure)
 Improve model with Deep Learning approaches
