@@ -1,4 +1,4 @@
-requirements.txtfastapi
+fastapi
 uvicorn
 pydantic
 numpy
