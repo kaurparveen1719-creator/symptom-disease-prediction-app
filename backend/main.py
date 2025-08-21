@@ -1,4 +1,3 @@
-# backend/main.py
 from pathlib import Path
 from typing import List, Dict, Optional
 import numpy as np
@@ -8,102 +7,61 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="Symptom-Disease Predictor", version="1.0")
+app = FastAPI(title="Symptom-Disease Predictor", version="2.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-# Allow calls from Streamlit/browser
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # tighten to your Streamlit URL if you want
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# ---------- Paths ----------
 BASE_DIR = Path(__file__).parent
 MODEL_PATH = BASE_DIR / "symptom_model.pkl"
 ENCODER_PATH = BASE_DIR / "label_encoder.pkl"
-SEVERITY_CSV = BASE_DIR / "Symptom-severity.csv"  # must contain column 'Symptom'
+FEATURES_CSV = BASE_DIR / "feature_names.csv"   # <- we load THIS file
 
-# ---------- Globals ----------
 model = None
 label_encoder = None
 FEATURE_NAMES: List[str] = []
 _last_errors: Dict[str, str] = {}
 
-# ---------- Schemas ----------
 class PredictIn(BaseModel):
-    symptoms: List[str]  # e.g., ["itching", "skin_rash"]
+    symptoms: List[str]
 
-# ---------- Helpers ----------
-def load_feature_names(source_csv: Path) -> List[str]:
-    """
-    Read symptom feature names (and order) from Symptom-severity.csv.
-    Uses the 'Symptom' column; normalizes to lowercase, strips spaces.
-    """
-    if not source_csv.exists():
-        raise FileNotFoundError(f"Feature CSV not found: {source_csv}")
-    df = pd.read_csv(source_csv)
-    if "Symptom" not in df.columns:
-        raise ValueError("Expected column 'Symptom' in Symptom-severity.csv")
-    names = [str(s).strip().lower() for s in df["Symptom"].tolist()]
-    names = [n for n in names if n and n != "nan"]
+def load_feature_names() -> List[str]:
+    if not FEATURES_CSV.exists():
+        raise FileNotFoundError(f"{FEATURES_CSV} not found.")
+    df = pd.read_csv(FEATURES_CSV)
+    col = df.columns[0]  # supports 1-col CSV or header "symptom"
+    names = [str(v).strip() for v in df[col].tolist() if str(v).strip()]
+    if not names:
+        raise ValueError("feature_names.csv loaded but empty.")
     return names
 
-# ---------- Startup ----------
 @app.on_event("startup")
-def startup_load():
+def startup():
     global model, label_encoder, FEATURE_NAMES, _last_errors
-    _last_errors.clear()
-
-    # Load features
+    _last_errors = {}
     try:
-        FEATURE_NAMES = load_feature_names(SEVERITY_CSV)
-        print(f"[startup] Loaded {len(FEATURE_NAMES)} features from {SEVERITY_CSV.name}")
+        FEATURE_NAMES = load_feature_names()
     except Exception as e:
         FEATURE_NAMES = []
-        _last_errors["features"] = str(e)
-        print(f"[startup][WARN] Feature load failed: {e}")
-
-    # Load model
+        _last_errors["features"] = repr(e)
     try:
         model = joblib.load(MODEL_PATH)
-        print(f"[startup] Model loaded from {MODEL_PATH.name}")
     except Exception as e:
         model = None
-        _last_errors["model"] = str(e)
-        print(f"[startup][ERROR] Model load failed: {e}")
-
-    # Load label encoder
+        _last_errors["model"] = repr(e)
     try:
         label_encoder = joblib.load(ENCODER_PATH)
-        print(f"[startup] Label encoder loaded from {ENCODER_PATH.name}")
     except Exception as e:
         label_encoder = None
-        _last_errors["encoder"] = str(e)
-        print(f"[startup][ERROR] Encoder load failed: {e}")
-
-# ---------- Endpoints ----------
-@app.get("/health")
-def health():
-    return {"ok": True}
+        _last_errors["encoder"] = repr(e)
 
 @app.get("/meta")
-def meta() -> Dict[str, Optional[object]]:
-    classes = None
-    if getattr(label_encoder, "classes_", None) is not None:
-        try:
-            classes = label_encoder.classes_.tolist()
-        except Exception:
-            classes = None
+def meta():
+    classes = getattr(label_encoder, "classes_", None)
     return {
         "model_loaded": model is not None,
         "encoder_loaded": label_encoder is not None,
         "n_features": len(FEATURE_NAMES),
         "features_preview": FEATURE_NAMES[:10],
-        "model_path": MODEL_PATH.name,
-        "encoder_path": ENCODER_PATH.name,
-        "feature_source": SEVERITY_CSV.name,
-        "classes_preview": (classes[:10] if classes else None),
+        "classes_preview": (classes[:10].tolist() if classes is not None else None),
         "last_errors": _last_errors or None,
     }
 
@@ -111,40 +69,26 @@ def meta() -> Dict[str, Optional[object]]:
 def predict(payload: PredictIn):
     if model is None or label_encoder is None:
         return {"predicted_disease": "MODEL_NOT_LOADED", "probas": None}
-
     if not FEATURE_NAMES:
         return {"predicted_disease": "FEATURES_NOT_LOADED", "probas": None}
 
-    # Multi-hot encode symptoms in the exact FEATURE_NAMES order
     present = {s.strip().lower() for s in payload.symptoms}
     x = np.zeros((1, len(FEATURE_NAMES)), dtype=float)
     for i, feat in enumerate(FEATURE_NAMES):
-        if feat in present:
+        if feat.lower() in present:
             x[0, i] = 1.0
 
-    # Predict
-    try:
-        if hasattr(model, "predict_proba"):
-            prob = model.predict_proba(x)[0]  # shape: (n_classes,)
-            top_idx = int(np.argmax(prob))
-            try:
-                top_label = label_encoder.inverse_transform([top_idx])[0]
-            except Exception:
-                top_label = str(top_idx)
-            probas = {}
-            for i, p in enumerate(prob):
-                try:
-                    name = label_encoder.inverse_transform([i])[0]
-                except Exception:
-                    name = str(i)
-                probas[str(name)] = float(p)
-            return {"predicted_disease": str(top_label), "probas": probas}
-        else:
-            idx = int(model.predict(x)[0])
-            try:
-                label = label_encoder.inverse_transform([idx])[0]
-            except Exception:
-                label = str(idx)
-            return {"predicted_disease": str(label), "probas": None}
-    except Exception as e:
-        return {"predicted_disease": f"ERROR: {e}", "probas": None}
+    if hasattr(model, "predict_proba"):
+        prob = model.predict_proba(x)[0]
+        idx = int(np.argmax(prob))
+        label = label_encoder.inverse_transform([idx])[0]
+        probas = {label_encoder.inverse_transform([i])[0]: float(p) for i, p in enumerate(prob)}
+        return {"predicted_disease": str(label), "probas": probas}
+    else:
+        idx = int(model.predict(x)[0])
+        label = label_encoder.inverse_transform([idx])[0]
+        return {"predicted_disease": str(label), "probas": None}
+
+@app.get("/features")
+def features():
+    return {"features": FEATURE_NAMES}
